@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: homepage-postgres
+    environment:
+      POSTGRES_USER: homepage
+      POSTGRES_PASSWORD: homepage
+      POSTGRES_DB: homepage
+    volumes:
+      - /srv/homepage/db:/var/lib/postgresql/data
+    networks:
+      - homepage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U homepage"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  app:
+    image: homepage:v1.1.0
+    container_name: homepage-app
+    environment:
+      LOG_LEVEL: info
+      DATABASE_URL: postgres://homepage:homepage@postgres:5432/homepage?sslmode=disable
+      JELLYFIN_URL: http://100.77.76.47:8096
+      SONARR_URL: http://100.77.76.47:8989
+      RADARR_URL: http://100.77.76.47:7878
+      BAZARR_URL: http://100.77.76.47:6767
+      AUDIOBOOKSHELF_URL: http://100.77.76.47:13378
+      UPTIME_KUMA_URL: http://100.77.76.47:3001
+    ports:
+      - "127.0.0.1:4200:4200"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - homepage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  homepage:
+    driver: bridge
+
+volumes:
+  db:
+    driver: local

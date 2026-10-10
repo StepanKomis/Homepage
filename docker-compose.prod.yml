@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
 
   app:
-    image: homepage:v1.0.0
+    image: homepage:v1.1.0
     ports:
       - "4200:4200"
     environment:
