@@ -1,0 +1,22 @@
+{
+  "services": {
+    "uptime": "Status dostupnosti",
+    "jellyfin": "Jellyfin",
+    "sonarr": "Sonarr",
+    "radarr": "Radarr",
+    "bazarr": "Bazarr",
+    "audiobookshelf": "Audiobookshelf",
+    "honcho": "Paměť Honcho",
+    "database": "PostgreSQL",
+    "status_online": "Online",
+    "status_offline": "Offline",
+    "status_unknown": "Neznámý stav",
+    "last_update": "Poslední aktualizace",
+    "dashboard": "Dashboard",
+    "settings": "Nastavení",
+    "refresh": "Obnovit",
+    "loading": "Načítání",
+    "error": "Chyba",
+    "retry": "Zkusit znovu"
+  }
+}

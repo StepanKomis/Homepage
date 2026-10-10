@@ -1,0 +1,22 @@
+{
+  "services": {
+    "uptime": "Uptime Status",
+    "jellyfin": "Jellyfin",
+    "sonarr": "Sonarr",
+    "radarr": "Radarr",
+    "bazarr": "Bazarr",
+    "audiobookshelf": "Audiobookshelf",
+    "honcho": "Honcho Memory",
+    "database": "PostgreSQL",
+    "status_online": "Online",
+    "status_offline": "Offline",
+    "status_unknown": "Unknown",
+    "last_update": "Last update",
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "refresh": "Refresh",
+    "loading": "Loading",
+    "error": "Error",
+    "retry": "Retry"
+  }
+}
