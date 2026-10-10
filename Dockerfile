@@ -7,11 +7,12 @@ RUN npm run build
 
 FROM golang:1.21-alpine AS backend-builder
 WORKDIR /app/backend
-RUN apk add --no-cache git
+RUN apk add --no-cache git ca-certificates
 COPY backend/go.mod ./
-# Generate go.sum if it doesn't exist
-RUN go mod download || go mod tidy || true
-RUN ls -la go.*
+# Download all dependencies
+RUN go env -w CGO_ENABLED=0 && \
+    go mod download && \
+    go mod verify || true
 COPY backend .
 RUN CGO_ENABLED=0 GOOS=linux go build -o server main.go
 
