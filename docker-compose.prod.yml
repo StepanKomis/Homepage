@@ -15,12 +15,16 @@ services:
 
   app:
     image: homepage:v1.1.0
+    env_file:
+      - .env
     ports:
       - "4200:4200"
     environment:
       DATABASE_URL: "postgres://homepage:homepage@postgres:5432/homepage?sslmode=disable"
       LOG_LEVEL: "info"
       TZ: "Europe/Prague"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - postgres
     restart: unless-stopped
