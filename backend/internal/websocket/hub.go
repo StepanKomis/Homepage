@@ -79,7 +79,7 @@ func (c *Client) readPump() {
 		c.conn.Close()
 	}()
 
-	c.conn.SetReadDeadline(0)
+	c.conn.SetReadDeadline(time.Time{})
 	for {
 		var msg json.RawMessage
 		if err := c.conn.ReadJSON(&msg); err != nil {

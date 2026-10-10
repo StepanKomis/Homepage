@@ -129,8 +129,6 @@ func (s *Server) handleTestIntegration(w http.ResponseWriter, r *http.Request) {
 		svc, err = s.intgr.CheckBazarr(ctx)
 	case "audiobookshelf":
 		svc, err = s.intgr.CheckAudiobookshelf(ctx)
-	case "honcho":
-		svc, err = s.intgr.CheckHoncho(ctx)
 	default:
 		http.Error(w, "Unknown service", http.StatusBadRequest)
 		return

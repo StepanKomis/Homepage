@@ -205,7 +205,6 @@ func (im *IntegrationManager) CheckAll(ctx context.Context) []models.Service {
 		{"Radarr", im.CheckRadarr},
 		{"Bazarr", im.CheckBazarr},
 		{"Audiobookshelf", im.CheckAudiobookshelf},
-		{"Honcho", im.CheckHoncho},
 	}
 
 	results := make(chan models.Service, len(checks))
