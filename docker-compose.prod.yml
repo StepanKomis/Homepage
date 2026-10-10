@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 
 services:
   postgres:
@@ -10,34 +10,20 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U homepage"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - homepage_db:/var/lib/postgresql/data
+    restart: unless-stopped
 
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      DATABASE_URL: postgres://homepage:homepage@postgres:5432/homepage
-      BACKEND_HOST: 0.0.0.0
-      BACKEND_PORT: 4200
-      UPTIME_KUMA_URL: http://kuma.komis.cz:3001
-      JELLYFIN_URL: http://jellyfin.komis.cz:8096
-      SONARR_URL: http://sonarr.komis.cz:8989
-      RADARR_URL: http://radarr.komis.cz:7878
-      BAZARR_URL: http://bazarr.komis.cz:6767
-      AUDIOBOOKSHELF_URL: http://abs.komis.cz:13378
-      HONCHO_URL: http://honcho.komis.cz:8666
-      MONGO_URL: mongodb://mongo2.komis.cz:27017
+  app:
+    image: homepage:v1.0.0
     ports:
       - "4200:4200"
+    environment:
+      DATABASE_URL: "postgres://homepage:homepage@postgres:5432/homepage?sslmode=disable"
+      LOG_LEVEL: "info"
+      TZ: "Europe/Prague"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  homepage_db:
