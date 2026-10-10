@@ -1,23 +1,54 @@
 {
+  "app": {
+    "brand": "homelab",
+    "themeToggle": "Toggle dark mode",
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "live": "LIVE",
+    "vps": "vps-01",
+    "vpsSpecs": "8 vCPU · 16 GB"
+  },
+  "nav": {
+    "overview": "Overview",
+    "apps": "Apps"
+  },
+  "overview": {
+    "title": "Overview",
+    "grid": "Widgets",
+    "pipeline": "Pipeline",
+    "wall": "App wall",
+    "nowPlaying": "Now playing",
+    "queue": "Download queue",
+    "upcoming": "Upcoming",
+    "library": "Library",
+    "alerts": "Alerts",
+    "services": "Services",
+    "emptyStreams": "Nobody is watching right now.",
+    "filterPlaceholder": "Filter services…",
+    "noServices": "No services match \"{{query}}\".",
+    "arriving": "Arriving this week",
+    "watching": "Watching now",
+    "streamsSuffix": "streams",
+    "connectedOf": "vps-01 · {{connected}} of {{total}} apps connected · {{unread}} unread alerts"
+  },
+  "vps": {
+    "cpu": "CPU",
+    "ram": "RAM",
+    "disk": "Disk"
+  },
+  "modal": {
+    "connect": "Connect {{name}}",
+    "configure": "Configure {{name}}",
+    "baseUrl": "Base URL",
+    "apiKey": "API key",
+    "test": "Test connection",
+    "testing": "Testing…",
+    "save": "Save",
+    "close": "Close"
+  },
   "services": {
-    "uptime": "Uptime Status",
-    "jellyfin": "Jellyfin",
-    "sonarr": "Sonarr",
-    "radarr": "Radarr",
-    "bazarr": "Bazarr",
-    "audiobookshelf": "Audiobookshelf",
-    "honcho": "Honcho Memory",
-    "database": "PostgreSQL",
     "status_online": "Online",
     "status_offline": "Offline",
-    "status_unknown": "Unknown",
-    "last_update": "Last update",
-    "dashboard": "Dashboard",
-    "settings": "Settings",
-    "refresh": "Refresh",
-    "loading": "Loading",
-    "error": "Error",
-    "retry": "Retry",
-    "no_services": "No services available"
+    "status_unknown": "Unknown"
   }
 }
