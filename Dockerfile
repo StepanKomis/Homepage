@@ -1,7 +1,7 @@
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm ci
+RUN npm install --prefer-offline --no-audit
 COPY frontend .
 RUN npm run build
 
@@ -9,7 +9,7 @@ FROM golang:1.21-alpine AS backend-builder
 WORKDIR /app/backend
 RUN apk add --no-cache git
 COPY backend/go.mod go.sum* ./
-RUN go mod download
+RUN go mod download 2>/dev/null || go mod tidy
 COPY backend .
 RUN CGO_ENABLED=0 GOOS=linux go build -o server main.go
 
@@ -23,5 +23,6 @@ COPY --from=frontend-builder /app/frontend/dist ./public
 EXPOSE 4200
 ENV BACKEND_HOST=0.0.0.0
 ENV BACKEND_PORT=4200
+ENV LOG_LEVEL=info
 
 CMD ["./server"]
