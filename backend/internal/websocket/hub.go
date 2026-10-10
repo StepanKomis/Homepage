@@ -13,9 +13,9 @@ import (
 
 type Hub struct {
 	clients    map[*Client]bool
-	broadcast  chan *models.WSMessage
-	register   chan *Client
-	unregister chan *Client
+	Broadcast  chan *models.WSMessage
+	Register   chan *Client
+	Unregister chan *Client
 	mu         sync.RWMutex
 	logger     *zap.Logger
 }
@@ -29,9 +29,9 @@ type Client struct {
 func NewHub(logger *zap.Logger) *Hub {
 	return &Hub{
 		clients:    make(map[*Client]bool),
-		broadcast:  make(chan *models.WSMessage, 256),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
+		Broadcast:  make(chan *models.WSMessage, 256),
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
 		logger:     logger,
 	}
 }
@@ -41,13 +41,13 @@ func (h *Hub) Run(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case client := <-h.register:
+		case client := <-h.Register:
 			h.mu.Lock()
 			h.clients[client] = true
 			h.mu.Unlock()
 			h.logger.Debug("client registered", zap.Int("total_clients", len(h.clients)))
 
-		case client := <-h.unregister:
+		case client := <-h.Unregister:
 			h.mu.Lock()
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
@@ -56,7 +56,7 @@ func (h *Hub) Run(ctx context.Context) {
 			h.mu.Unlock()
 			h.logger.Debug("client unregistered", zap.Int("total_clients", len(h.clients)))
 
-		case msg := <-h.broadcast:
+		case msg := <-h.Broadcast:
 			h.mu.RLock()
 			for client := range h.clients {
 				select {
@@ -69,8 +69,8 @@ func (h *Hub) Run(ctx context.Context) {
 	}
 }
 
-func (h *Hub) Broadcast(msg *models.WSMessage) {
-	h.broadcast <- msg
+func (h *Hub) BroadcastMessage(msg *models.WSMessage) {
+	h.Broadcast <- msg
 }
 
 func (c *Client) ReadPump() {
