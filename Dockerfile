@@ -8,8 +8,10 @@ RUN npm run build
 FROM golang:1.21-alpine AS backend-builder
 WORKDIR /app/backend
 RUN apk add --no-cache git
-COPY backend/go.mod go.sum* ./
-RUN go mod download 2>/dev/null || go mod tidy
+COPY backend/go.mod ./
+# Generate go.sum if it doesn't exist
+RUN go mod download || go mod tidy || true
+RUN ls -la go.*
 COPY backend .
 RUN CGO_ENABLED=0 GOOS=linux go build -o server main.go
 
