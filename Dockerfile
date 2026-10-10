@@ -8,13 +8,10 @@ RUN npm run build
 FROM golang:1.21-alpine AS backend-builder
 WORKDIR /app/backend
 RUN apk add --no-cache git ca-certificates
-COPY backend/go.mod ./
-# Download all dependencies
-RUN go env -w CGO_ENABLED=0 && \
+COPY backend . 
+RUN go mod tidy && \
     go mod download && \
-    go mod verify || true
-COPY backend .
-RUN CGO_ENABLED=0 GOOS=linux go build -o server main.go
+    CGO_ENABLED=0 GOOS=linux go build -o server main.go
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
