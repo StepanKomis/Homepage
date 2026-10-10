@@ -9,26 +9,26 @@ import (
 	"go.uber.org/zap"
 	"homepage/internal/db"
 	"homepage/internal/integrations"
+	ws "homepage/internal/websocket"
 	"homepage/internal/models"
-	"homepage/internal/websocket"
 )
 
 type Server struct {
-	db           *db.Database
-	intgr        *integrations.IntegrationManager
-	wsHub        *websocket.Hub
-	logger       *zap.Logger
-	mux          *http.ServeMux
-	wsUpgrader   websocket.Upgrader
+	db         *db.Database
+	intgr      *integrations.IntegrationManager
+	wsHub      *ws.Hub
+	logger     *zap.Logger
+	mux        *http.ServeMux
+	wsUpgrader websocket.Upgrader
 }
 
-func NewServer(database *db.Database, im *integrations.IntegrationManager, hub *websocket.Hub, logger *zap.Logger) *Server {
+func NewServer(database *db.Database, im *integrations.IntegrationManager, hub *ws.Hub, logger *zap.Logger) *Server {
 	s := &Server{
-		db:    database,
-		intgr: im,
-		wsHub: hub,
+		db:     database,
+		intgr:  im,
+		wsHub:  hub,
 		logger: logger,
-		mux:   http.NewServeMux(),
+		mux:    http.NewServeMux(),
 		wsUpgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
@@ -42,7 +42,6 @@ func NewServer(database *db.Database, im *integrations.IntegrationManager, hub *
 
 func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/v1/status", s.handleGetStatus)
-	s.mux.HandleFunc("GET /api/v1/services/{id}", s.handleGetService)
 	s.mux.HandleFunc("GET /api/v1/config", s.handleGetConfig)
 	s.mux.HandleFunc("POST /api/v1/integration/test", s.handleTestIntegration)
 	s.mux.HandleFunc("GET /api/ws", s.handleWebSocket)
@@ -53,15 +52,18 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
+func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "ok",
+	})
+}
+
 func (s *Server) handleGetStatus(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 15e9)
+	ctx, cancel := context.WithTimeout(r.Context(), 30e9)
 	defer cancel()
 
-	services, err := s.db.GetAllServices(ctx)
-	if err != nil || len(services) == 0 {
-		s.logger.Warn("fetching from db failed, checking integrations", zap.Error(err))
-		services = s.intgr.CheckAll(ctx)
-	}
+	services := s.intgr.CheckAll(ctx)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -69,42 +71,22 @@ func (s *Server) handleGetStatus(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) handleGetService(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	ctx, cancel := context.WithTimeout(r.Context(), 5e9)
-	defer cancel()
-
-	services, err := s.db.GetAllServices(ctx)
-	if err != nil {
-		http.Error(w, "Failed to fetch services", http.StatusInternalServerError)
-		return
-	}
-
-	for _, svc := range services {
-		if svc.ID == id {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"service": svc,
-			})
-			return
-		}
-	}
-
-	http.Error(w, "Service not found", http.StatusNotFound)
-}
-
 func (s *Server) handleGetConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"timezone": "Europe/Prague",
-		"version":  "0.1.0",
+		"language":  "cs",
+		"timezone":  "Europe/Prague",
+		"refresh":   30,
+		"services":  []string{"uptime-kuma", "jellyfin", "sonarr", "radarr", "bazarr", "audiobookshelf"},
 	})
 }
 
+type TestIntegrationRequest struct {
+	ServiceID string `json:"service_id"`
+}
+
 func (s *Server) handleTestIntegration(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		ServiceID string `json:"service_id"`
-	}
+	var req TestIntegrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
@@ -157,12 +139,14 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.wsHub.NewClient(conn)
-}
+	client := &ws.Client{
+		Hub:  s.wsHub,
+		Conn: conn,
+		Send: make(chan *models.WSMessage, 256),
+	}
 
-func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "ok",
-	})
+	s.wsHub.Register <- client
+
+	go client.WritePump()
+	go client.ReadPump()
 }

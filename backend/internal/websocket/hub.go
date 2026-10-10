@@ -21,9 +21,9 @@ type Hub struct {
 }
 
 type Client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan *models.WSMessage
+	Hub  *Hub
+	Conn *websocket.Conn
+	Send chan *models.WSMessage
 }
 
 func NewHub(logger *zap.Logger) *Hub {
@@ -51,7 +51,7 @@ func (h *Hub) Run(ctx context.Context) {
 			h.mu.Lock()
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
-				close(client.send)
+				close(client.Send)
 			}
 			h.mu.Unlock()
 			h.logger.Debug("client unregistered", zap.Int("total_clients", len(h.clients)))
@@ -60,9 +60,8 @@ func (h *Hub) Run(ctx context.Context) {
 			h.mu.RLock()
 			for client := range h.clients {
 				select {
-				case client.send <- msg:
+				case client.Send <- msg:
 				default:
-					h.logger.Warn("client send channel full, skipping")
 				}
 			}
 			h.mu.RUnlock()
@@ -74,44 +73,33 @@ func (h *Hub) Broadcast(msg *models.WSMessage) {
 	h.broadcast <- msg
 }
 
-func (c *Client) readPump() {
+func (c *Client) ReadPump() {
 	defer func() {
-		c.hub.unregister <- c
-		c.conn.Close()
+		c.Hub.unregister <- c
+		c.Conn.Close()
 	}()
 
-	c.conn.SetReadDeadline(time.Time{})
+	c.Conn.SetReadDeadline(time.Time{})
 	for {
 		var msg json.RawMessage
-		if err := c.conn.ReadJSON(&msg); err != nil {
+		if err := c.Conn.ReadJSON(&msg); err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				c.hub.logger.Error("websocket error", zap.Error(err))
+				c.Hub.logger.Error("websocket error", zap.Error(err))
 			}
 			return
 		}
 	}
 }
 
-func (c *Client) writePump() {
-	defer c.conn.Close()
+func (c *Client) WritePump() {
+	defer c.Conn.Close()
 	for {
 		select {
-		case msg := <-c.send:
-			if err := c.conn.WriteJSON(msg); err != nil {
+		case msg := <-c.Send:
+			c.Conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
+			if err := c.Conn.WriteJSON(msg); err != nil {
 				return
 			}
 		}
 	}
-}
-
-func (h *Hub) NewClient(conn *websocket.Conn) *Client {
-	client := &Client{
-		hub:  h,
-		conn: conn,
-		send: make(chan *models.WSMessage, 256),
-	}
-	h.register <- client
-	go client.readPump()
-	go client.writePump()
-	return client
 }
