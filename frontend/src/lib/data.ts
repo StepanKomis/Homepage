@@ -126,7 +126,7 @@ export interface AlertItem {
 
 export const ALERTS: AlertItem[] = [
   { app: 'Uptime Kuma', title: 'Prowlarr indexer down', msg: '1337x returned 503 for 15 min', t: '14:02', prio: 8 },
-  { app: 'Nginx Proxy Manager', title: 'Certificate expires in 6 days', msg: `ombi.${D} — renewal failed (DNS challenge)`, t: '12:00', prio: 6 },
+  { app: 'Nginx Proxy Manager', title: 'Certificate expires in 6 days', msg: `ombi.${D}: renewal failed (DNS challenge)`, t: '12:00', prio: 6 },
   { app: 'Jellyseerr', title: 'New request', msg: 'mira requested Severance · Season 1', t: '11:48', prio: 5 },
   { app: 'Sonarr', title: 'Episode imported', msg: 'The Last of Us S02E04 → /media/tv', t: '09:41', prio: 3 },
   { app: 'n8n', title: 'Workflow finished', msg: 'Nightly Immich backup → B2 · 3.2 GB', t: '03:12', prio: 2 },
