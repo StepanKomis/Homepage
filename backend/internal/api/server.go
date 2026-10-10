@@ -41,9 +41,16 @@ func NewServer(database *db.Database, im *integrations.IntegrationManager, hub *
 }
 
 func (s *Server) routes() {
+	// API v1 routes
 	s.mux.HandleFunc("GET /api/v1/status", s.handleGetStatus)
 	s.mux.HandleFunc("GET /api/v1/config", s.handleGetConfig)
 	s.mux.HandleFunc("POST /api/v1/integration/test", s.handleTestIntegration)
+	
+	// Frontend compatibility routes
+	s.mux.HandleFunc("GET /api/services", s.handleGetStatus)
+	s.mux.HandleFunc("GET /api/config", s.handleGetConfig)
+	
+	// WebSocket and health
 	s.mux.HandleFunc("GET /api/ws", s.handleWebSocket)
 	s.mux.HandleFunc("GET /health", s.handleHealth)
 }
