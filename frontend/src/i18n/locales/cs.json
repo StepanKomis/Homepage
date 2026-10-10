@@ -17,6 +17,7 @@
     "refresh": "Obnovit",
     "loading": "Načítání",
     "error": "Chyba",
-    "retry": "Zkusit znovu"
+    "retry": "Zkusit znovu",
+    "no_services": "Žádné dostupné služby"
   }
 }
