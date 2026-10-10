@@ -42,7 +42,6 @@ func NewServer(database *db.Database, im *integrations.IntegrationManager, hub *
 
 func (s *Server) routes() {
 	// Static frontend files
-	fs := http.FileServer(http.Dir("/app/public"))
 	s.mux.Handle("/", http.FileServer(http.Dir("/app/public")))
 	s.mux.HandleFunc("GET /health", s.handleHealth)
 
