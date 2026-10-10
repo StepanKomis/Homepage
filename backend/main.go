@@ -80,7 +80,7 @@ func main() {
 			services := im.CheckAll(context.Background())
 			for _, svc := range services {
 				database.UpdateServiceStatus(context.Background(), &svc)
-				wsHub.Broadcast(&websocket.WSMessage{
+				wsHub.BroadcastMessage(&models.WSMessage{
 					Type: "status_update",
 					Data: svc,
 				})
