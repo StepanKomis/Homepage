@@ -1,23 +1,54 @@
 {
+  "app": {
+    "brand": "homelab",
+    "themeToggle": "Přepnout tmavý režim",
+    "themeDark": "Tmavý",
+    "themeLight": "Světlý",
+    "live": "LIVE",
+    "vps": "vps-01",
+    "vpsSpecs": "8 vCPU · 16 GB"
+  },
+  "nav": {
+    "overview": "Přehled",
+    "apps": "Aplikace"
+  },
+  "overview": {
+    "title": "Přehled",
+    "grid": "Widgety",
+    "pipeline": "Pipeline",
+    "wall": "App wall",
+    "nowPlaying": "Právě se přehrává",
+    "queue": "Fronta stahování",
+    "upcoming": "Nadchází",
+    "library": "Knihovna",
+    "alerts": "Upozornění",
+    "services": "Služby",
+    "emptyStreams": "Právě se nic nepřehrává.",
+    "filterPlaceholder": "Filtrovat služby…",
+    "noServices": "Žádné služby neodpovídají dotazu \"{{query}}\".",
+    "arriving": "Přichází tento týden",
+    "watching": "Právě sleduje",
+    "streamsSuffix": "streamů",
+    "connectedOf": "vps-01 · {{connected}} z {{total}} aplikací připojeno · {{unread}} nepřečtených upozornění"
+  },
+  "vps": {
+    "cpu": "CPU",
+    "ram": "RAM",
+    "disk": "Disk"
+  },
+  "modal": {
+    "connect": "Připojit {{name}}",
+    "configure": "Nastavit {{name}}",
+    "baseUrl": "Základní URL",
+    "apiKey": "API klíč",
+    "test": "Otestovat připojení",
+    "testing": "Testuji…",
+    "save": "Uložit",
+    "close": "Zavřít"
+  },
   "services": {
-    "uptime": "Status dostupnosti",
-    "jellyfin": "Jellyfin",
-    "sonarr": "Sonarr",
-    "radarr": "Radarr",
-    "bazarr": "Bazarr",
-    "audiobookshelf": "Audiobookshelf",
-    "honcho": "Paměť Honcho",
-    "database": "PostgreSQL",
     "status_online": "Online",
     "status_offline": "Offline",
-    "status_unknown": "Neznámý stav",
-    "last_update": "Poslední aktualizace",
-    "dashboard": "Dashboard",
-    "settings": "Nastavení",
-    "refresh": "Obnovit",
-    "loading": "Načítání",
-    "error": "Chyba",
-    "retry": "Zkusit znovu",
-    "no_services": "Žádné dostupné služby"
+    "status_unknown": "Neznámý stav"
   }
 }
