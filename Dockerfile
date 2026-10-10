@@ -5,7 +5,7 @@ RUN npm install --prefer-offline --no-audit
 COPY frontend .
 RUN npm run build
 
-FROM golang:1.21-alpine AS backend-builder
+FROM golang:1.22-alpine AS backend-builder
 WORKDIR /app/backend
 RUN apk add --no-cache git ca-certificates
 COPY backend . 
