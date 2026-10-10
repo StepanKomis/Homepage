@@ -17,6 +17,7 @@
     "refresh": "Refresh",
     "loading": "Loading",
     "error": "Error",
-    "retry": "Retry"
+    "retry": "Retry",
+    "no_services": "No services available"
   }
 }
