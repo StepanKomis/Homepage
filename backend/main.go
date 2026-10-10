@@ -16,6 +16,7 @@ import (
 	"homepage/internal/api"
 	"homepage/internal/db"
 	"homepage/internal/integrations"
+	"homepage/internal/models"
 	"homepage/internal/websocket"
 )
 
