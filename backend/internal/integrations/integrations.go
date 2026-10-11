@@ -38,7 +38,7 @@ func (im *IntegrationManager) CheckUptimeKuma(ctx context.Context) (*models.Serv
 		return nil, fmt.Errorf("UPTIME_KUMA_URL not configured")
 	}
 
-	req, _ := http.NewRequestWithContext(ctx, "GET", url+"/api/status", nil)
+	req, _ := http.NewRequestWithContext(ctx, "GET", url+"/login", nil)
 	resp, err := im.client.Do(req)
 	if err != nil {
 		return &models.Service{
