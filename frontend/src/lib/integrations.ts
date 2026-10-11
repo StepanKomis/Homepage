@@ -2,7 +2,7 @@
    Real integrations (Jellyfin, qBittorrent, Sonarr/Radarr, Gotify) can replace
    the fetchers here without touching components. */
 import type { ServiceStatus } from './data'
-import { STREAMS, TORRENTS, UPCOMING, ALERTS, type Stream, type Torrent, type UpcomingItem, type AlertItem } from './data'
+import { STREAMS, TORRENTS, UPCOMING, ALERTS, type Stream, type Torrent, type TorrentState, type UpcomingItem, type AlertItem } from './data'
 
 export const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
@@ -52,9 +52,9 @@ export async function testIntegration(serviceId: string, url: string, apiKey: st
   }
 }
 
-/* Streaming / download / calendar data. The backend has no such endpoints yet,
-   so the design mock constants are the fallback. Replace with real API calls
-   when the integrations land. */
+/* Streaming / download / calendar data from the live backend endpoints.
+   Design mock constants remain the fallback while the backend endpoint is
+   unreachable or the source service has no data yet. */
 export interface MediaData {
   streams: Stream[]
   torrents: Torrent[]
@@ -62,20 +62,106 @@ export interface MediaData {
   alerts: AlertItem[]
 }
 
-export async function fetchMediaData(): Promise<MediaData> {
+export interface LibraryStat {
+  label: string
+  value: string | number
+}
+
+async function getJSON<T>(path: string): Promise<T | null> {
   try {
-    const res = await fetch(`${API_BASE}/v1/media`)
-    if (!res.ok) throw new Error(`media ${res.status}`)
-    const data = await res.json()
-    return {
-      streams: data.streams ?? STREAMS,
-      torrents: data.torrents ?? TORRENTS,
-      upcoming: data.upcoming ?? UPCOMING,
-      alerts: data.alerts ?? ALERTS,
-    }
+    const res = await fetch(`${API_BASE}${path}`)
+    if (!res.ok) return null
+    return (await res.json()) as T
   } catch {
-    return { streams: STREAMS, torrents: TORRENTS, upcoming: UPCOMING, alerts: ALERTS }
+    return null
   }
+}
+
+/* Backend rows are loosely typed maps; normalize them to the design shapes. */
+type Row = Record<string, unknown>
+
+const str = (v: unknown, dflt = ''): string => (typeof v === 'string' ? v : v != null ? String(v) : dflt)
+const num = (v: unknown, dflt = 0): number => (typeof v === 'number' ? v : v != null ? Number(v) || 0 : dflt)
+
+function mapStream(r: Row, i: number): Stream {
+  const mode = str(r.paused) === 'true' || r.paused === true ? 'Paused' : 'Direct play'
+  const series = str(r.series)
+  const ep = str(r.ep)
+  return {
+    id: num(r.id, i + 1),
+    user: str(r.user, 'unknown'),
+    title: series ? `${series} · ${str(r.title)}` : str(r.title),
+    sub: series ? (ep || 'Episode') : str(r.year) ? String(num(r.year)) : 'Movie',
+    client: str(r.client, str(r.device, 'Client')),
+    mode,
+    pos: num(r.progress),
+    dur: 0,
+  }
+}
+
+function mapTorrent(r: Row, i: number): Torrent {
+  const stMap: Record<string, TorrentState> = {
+    downloading: 'downloading', stalled: 'stalled', done: 'seeding',
+    paused: 'paused', queued: 'stalled', error: 'stalled',
+  }
+  const st = stMap[str(r.status, 'downloading')] ?? 'downloading'
+  const speed = num(r.speed) / 1e6
+  return {
+    id: num(r.id, i + 1),
+    name: str(r.name),
+    size: num(r.size) / 1e9,
+    prog: num(r.progress),
+    dl: st === 'downloading' ? speed : 0,
+    ul: 0,
+    st,
+    cat: str(r.category, str(r.eta, '')),
+  }
+}
+
+function mapUpcoming(r: Row, i: number): UpcomingItem {
+  const day = str(r.day)
+  const d = new Date(day + 'T00:00:00')
+  const today = new Date().toISOString().slice(0, 10)
+  const tomorrow = new Date(Date.now() + 864e5).toISOString().slice(0, 10)
+  const dayLabel = day === today ? 'Today' : day === tomorrow ? 'Tomorrow' : d.toLocaleDateString('en', { weekday: 'short' })
+  return {
+    day: dayLabel,
+    time: str(r.when, 'Digital'),
+    title: str(r.title),
+    ep: str(r.ep) || str(r.year) || '',
+    src: str(r.source, 'Sonarr'),
+  }
+}
+
+function mapAlert(r: Row, i: number): AlertItem {
+  const d = new Date(str(r.date))
+  return {
+    app: 'Gotify',
+    title: str(r.title),
+    msg: str(r.message),
+    t: isNaN(d.getTime()) ? '' : d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }),
+    prio: 5,
+  }
+}
+
+export async function fetchMediaData(): Promise<MediaData> {
+  const [streams, torrents, upcoming, alerts] = await Promise.all([
+    getJSON<{ streams: Row[] | null }>('/v1/streams'),
+    getJSON<{ torrents: Row[] | null }>('/v1/torrents'),
+    getJSON<{ upcoming: Row[] | null }>('/v1/upcoming'),
+    getJSON<{ alerts: Row[] | null }>('/v1/alerts'),
+  ])
+  return {
+    streams: streams?.streams?.map(mapStream) ?? STREAMS,
+    torrents: torrents?.torrents?.map(mapTorrent) ?? TORRENTS,
+    upcoming: upcoming?.upcoming?.map(mapUpcoming) ?? UPCOMING,
+    alerts: alerts?.alerts?.map(mapAlert) ?? ALERTS,
+  }
+}
+
+export async function fetchLibraryStats(): Promise<LibraryStat[] | null> {
+  const data = await getJSON<{ stats: LibraryStat[] | null }>('/v1/library')
+  return data?.stats ?? null
 }
 
 /* Map a backend service status to a design dot color. */

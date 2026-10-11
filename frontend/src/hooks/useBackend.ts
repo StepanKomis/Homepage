@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useDashboardStore } from '../store/dashboard'
-import { fetchStatus, fetchConfig, fetchMediaData, type BackendService, LAT } from '../lib/integrations'
+import { fetchStatus, fetchConfig, fetchMediaData, fetchLibraryStats, type BackendService, LAT } from '../lib/integrations'
 import type { ServiceStatus } from '../lib/data'
 import { APPS } from '../lib/data'
 
@@ -27,6 +27,7 @@ export function useBackend() {
   const setStatuses = useDashboardStore((s) => s.setStatuses)
   const updateStatus = useDashboardStore((s) => s.updateStatus)
   const setMedia = useDashboardStore((s) => s.setMedia)
+  const setLibrary = useDashboardStore((s) => s.setLibrary)
   const setConfig = useDashboardStore((s) => s.setConfig)
   const setLoading = useDashboardStore((s) => s.setLoading)
   const wsRef = useRef<WebSocket | null>(null)
@@ -37,7 +38,7 @@ export function useBackend() {
 
     const pull = async (first: boolean) => {
       try {
-        const [st, media] = await Promise.allSettled([fetchStatus(), fetchMediaData()])
+        const [st, media, lib] = await Promise.allSettled([fetchStatus(), fetchMediaData(), fetchLibraryStats()])
         if (cancelled) return
         if (st.status === 'fulfilled') {
           const map: Record<string, ServiceStatus> = {}
@@ -45,6 +46,7 @@ export function useBackend() {
           setStatuses(map)
         }
         if (media.status === 'fulfilled') setMedia(media.value)
+        if (lib.status === 'fulfilled') setLibrary(lib.value)
       } catch {
         /* offline: mock fallbacks already in place */
       } finally {
@@ -66,7 +68,7 @@ export function useBackend() {
       cancelled = true
       window.clearInterval(id)
     }
-  }, [pollMs, setStatuses, updateStatus, setMedia, setConfig, setLoading])
+  }, [pollMs, setStatuses, updateStatus, setMedia, setLibrary, setConfig, setLoading])
 
   useEffect(() => {
     if (!live) {

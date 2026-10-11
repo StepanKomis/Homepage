@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { BackendConfig, MediaData } from '../lib/integrations'
+import type { BackendConfig, MediaData, LibraryStat } from '../lib/integrations'
 import type { ServiceStatus } from '../lib/data'
 
 export type Layout = 'grid' | 'pipeline' | 'wall'
@@ -23,6 +23,7 @@ interface DashboardStore {
   connected: Record<string, boolean>
   statuses: Record<string, ServiceStatus>
   media: MediaData
+  library: LibraryStat[] | null
   loading: boolean
   query: string
   modal: ConnectModal
@@ -35,6 +36,7 @@ interface DashboardStore {
   setStatuses: (s: Record<string, ServiceStatus>) => void
   updateStatus: (id: string, status: ServiceStatus) => void
   setMedia: (m: MediaData) => void
+  setLibrary: (l: LibraryStat[] | null) => void
   setLoading: (v: boolean) => void
   setQuery: (q: string) => void
   openModal: (appId: string) => void
@@ -55,6 +57,7 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
   connected: {},
   statuses: {},
   media: { streams: [], torrents: [], upcoming: [], alerts: [] },
+  library: null,
   loading: true,
   query: '',
   modal: { appId: null, url: '', key: '', phase: 'form', errText: '' },
@@ -80,6 +83,7 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
   setStatuses: (statuses) => set({ statuses }),
   updateStatus: (id, status) => set((s) => ({ statuses: { ...s.statuses, [id]: status } })),
   setMedia: (media) => set({ media }),
+  setLibrary: (library) => set({ library }),
   setLoading: (loading) => set({ loading }),
   setQuery: (query) => set({ query }),
   openModal: (appId) => set({ modal: { appId, url: '', key: '', phase: 'form', errText: '' } }),

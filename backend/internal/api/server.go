@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
@@ -53,6 +54,13 @@ func (s *Server) routes() {
 	// Frontend compatibility routes
 	s.mux.HandleFunc("GET /api/services", s.handleGetStatus)
 	s.mux.HandleFunc("GET /api/config", s.handleGetConfig)
+
+	// Live data endpoints
+	s.mux.HandleFunc("GET /api/v1/streams", s.handleStreams)
+	s.mux.HandleFunc("GET /api/v1/torrents", s.handleTorrents)
+	s.mux.HandleFunc("GET /api/v1/upcoming", s.handleUpcoming)
+	s.mux.HandleFunc("GET /api/v1/library", s.handleLibrary)
+	s.mux.HandleFunc("GET /api/v1/alerts", s.handleAlerts)
 
 	// WebSocket
 	s.mux.HandleFunc("GET /api/ws", s.handleWebSocket)
@@ -142,6 +150,52 @@ func (s *Server) handleTestIntegration(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"service": svc,
 	})
+}
+
+// Live data handlers
+func (s *Server) writeJSON(w http.ResponseWriter, v interface{}, err error) {
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": err.Error()})
+		return
+	}
+	json.NewEncoder(w).Encode(v)
+}
+
+func (s *Server) handleStreams(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	streams, err := s.intgr.GetJellyfinStreams(ctx)
+	s.writeJSON(w, map[string]interface{}{"streams": streams}, err)
+}
+
+func (s *Server) handleTorrents(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	torrents, err := s.intgr.GetQbitTorrents(ctx)
+	s.writeJSON(w, map[string]interface{}{"torrents": torrents}, err)
+}
+
+func (s *Server) handleUpcoming(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
+	defer cancel()
+	upcoming, err := s.intgr.GetUpcoming(ctx)
+	s.writeJSON(w, map[string]interface{}{"upcoming": upcoming}, err)
+}
+
+func (s *Server) handleLibrary(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
+	defer cancel()
+	stats, err := s.intgr.GetLibraryStats(ctx)
+	s.writeJSON(w, map[string]interface{}{"stats": stats}, err)
+}
+
+func (s *Server) handleAlerts(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	msgs, err := s.intgr.GetGotifyMessages(ctx)
+	s.writeJSON(w, map[string]interface{}{"alerts": msgs}, err)
 }
 
 func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {

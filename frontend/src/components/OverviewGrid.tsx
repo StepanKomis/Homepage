@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon, ICONS } from '../lib/icons'
 import { STREAMS, TORRENTS, UPCOMING, ALERTS, LIBRARY, ST, type Stream, type Torrent, type UpcomingItem, type AlertItem, type TorrentState } from '../lib/data'
 import { useDashboardStore } from '../store/dashboard'
+import type { LibraryStat } from '../lib/integrations'
 
 const pct = (s: Stream): number => Math.round(s.pos * 100)
 
@@ -63,12 +64,17 @@ const alertTone = (prio: number): string => (prio >= 8 ? 'var(--red)' : prio >= 
 export default function OverviewGrid(): JSX.Element {
   const { t } = useTranslation()
   const media = useDashboardStore((s) => s.media)
+  const libraryLive = useDashboardStore((s) => s.library)
   const connected = useDashboardStore((s) => s.connected)
 
   const streams: Stream[] = media.streams.length ? media.streams : STREAMS
   const torrents: Torrent[] = media.torrents.length ? media.torrents : TORRENTS
   const upcoming: UpcomingItem[] = media.upcoming.length ? media.upcoming : UPCOMING
   const alerts: AlertItem[] = media.alerts.length ? media.alerts : ALERTS
+  const LIB: { value: string | number; label: string; src: string }[] =
+    libraryLive && libraryLive.length
+      ? libraryLive.map((l: LibraryStat) => ({ value: l.value, label: l.label, src: 'Live' }))
+      : LIBRARY
   const jelly = connected.jellyfin !== false
 
   const streamsLive = streams.length
@@ -179,7 +185,7 @@ export default function OverviewGrid(): JSX.Element {
             <h2><Icon d={ICONS.database} size={17} /> {t('overview.library')}</h2>
           </div>
           <div className="lib-grid">
-            {LIBRARY.map((l) => (
+            {LIB.map((l) => (
               <div key={l.label}>
                 <span className="lib-value">{l.value}</span>
                 <br />
