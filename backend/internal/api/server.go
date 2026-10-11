@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -19,6 +20,7 @@ type Server struct {
 	intgr      *integrations.IntegrationManager
 	wsHub      *ws.Hub
 	logger     *zap.Logger
+	gotifyDB   *integrations.GotifyDB
 	mux        *http.ServeMux
 	wsUpgrader websocket.Upgrader
 }
@@ -35,6 +37,10 @@ func NewServer(database *db.Database, im *integrations.IntegrationManager, hub *
 				return true
 			},
 		},
+	}
+
+	if dsn := os.Getenv("GOTIFY_DB_DSN"); dsn != "" {
+		s.gotifyDB = integrations.NewGotifyDB(dsn)
 	}
 
 	s.routes()
@@ -194,7 +200,13 @@ func (s *Server) handleLibrary(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleAlerts(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
 	defer cancel()
-	msgs, err := s.intgr.GetGotifyMessages(ctx)
+	var msgs []map[string]interface{}
+	var err error
+	if s.gotifyDB != nil {
+		msgs, err = s.gotifyDB.Recent(ctx, 10)
+	} else {
+		msgs, err = s.intgr.GetGotifyMessages(ctx)
+	}
 	s.writeJSON(w, map[string]interface{}{"alerts": msgs}, err)
 }
 
