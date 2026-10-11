@@ -200,13 +200,10 @@ func (s *Server) handleLibrary(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleAlerts(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
 	defer cancel()
-	var msgs []map[string]interface{}
-	var err error
-	msgs, err = s.intgr.GetGotifyMessages(ctx)
+	msgs, err := s.intgr.GetGotifyMessages(ctx)
 	if err != nil && s.gotifyDB != nil {
-		msgs, e2 := s.gotifyDB.Recent(ctx, 10)
-		if e2 == nil {
-			err = nil
+		if m2, e2 := s.gotifyDB.Recent(ctx, 10); e2 == nil {
+			msgs, err = m2, nil
 		}
 	}
 	s.writeJSON(w, map[string]interface{}{"alerts": msgs}, err)
