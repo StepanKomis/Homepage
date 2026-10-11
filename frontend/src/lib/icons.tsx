@@ -16,7 +16,7 @@ export const ICONS: Record<string, string> = {
   message: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z', check: 'M20 6 9 17l-5-5', x: 'M18 6 6 18 M6 6l12 12', power: 'M12 2v10 M18.4 6.6a9 9 0 1 1-12.8 0',
   key: 'M15.5 7.5l3 3L22 7l-3-3 M21 2l-9.6 9.6 M7.5 22a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11z', users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75',
   calendar: 'M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18', book: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5',
-  server: 'M2 2h20v8H2z M2 14h20v8H2z M6 6h.01 M6 18h.01', clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2', arrow: 'M5 12h14 M12 5l7 7-7 7',
+  server: 'M2 2h20v8H2z M2 14h20v8H2z M6 6h.01 M6 18h.01', clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2', arrow: 'M5 12h14 M12 5l7 7-7 7', arrowRight: 'M5 12h14 M12 5l7 7-7 7', database: 'M12 2c5 0 9 1.3 9 3v14c0 1.7-4 3-9 3s-9-1.3-9-3V5c0-1.7 4-3 9-3z M21 5c0 1.7-4 3-9 3S3 6.7 3 5 M21 12c0 1.7-4 3-9 3s-9-1.3-9-3',
   sun: 'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z M12 1v2 M12 21v2 M4.2 4.2l1.4 1.4 M18.4 18.4l1.4 1.4 M1 12h2 M21 12h2 M4.2 19.8l1.4-1.4 M18.4 5.6l1.4-1.4', moon: 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z',
 }
 
@@ -26,6 +26,7 @@ export const iconFor = (label: string): string =>
   ICONS[(ICON_RULES.find(([r]) => r.test(label)) || [0, 'arrow'])[1]]
 
 export function Icon({ d, size = 16, color, className, style }: { d: string; size?: number; color?: string; className?: string; style?: React.CSSProperties }) {
+  if (!d) return null
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color ?? 'currentColor'} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, ...style }} className={className}>
       {d.split(' M').map((seg, i) => (
