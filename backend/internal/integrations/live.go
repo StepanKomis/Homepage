@@ -325,7 +325,7 @@ func (im *IntegrationManager) GetLibraryStats(ctx context.Context) ([]map[string
 		key := im.config["JELLYFIN_API_KEY"]
 		req, _ := http.NewRequestWithContext(ctx, "GET", jf+"/Items/Counts", nil)
 		if key != "" {
-			req.Header.Set("X-Emby-Token", key)
+			req.Header.Set("Authorization", "MediaBrowser Token="+key+", Client=homepage, Device=homepage, Version=1.0, DeviceId=homepage-vega")
 		}
 		if resp, err := im.client.Do(req); err == nil {
 			body, _ := io.ReadAll(resp.Body)
