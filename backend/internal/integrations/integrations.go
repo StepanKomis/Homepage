@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -120,7 +121,14 @@ func (im *IntegrationManager) checkArrrService(ctx context.Context, id, name, ur
 		return nil, fmt.Errorf("%s URL not configured", name)
 	}
 
-	req, _ := http.NewRequestWithContext(ctx, "GET", url+"/api/v1/system/status", nil)
+	apiPath := "/api/v1/system/status"
+	if id == "sonarr" || id == "radarr" {
+		apiPath = "/api/v3/system/status"
+	}
+	req, _ := http.NewRequestWithContext(ctx, "GET", url+apiPath, nil)
+	if key := im.config[strings.ToUpper(id)+"_API_KEY"]; key != "" {
+		req.Header.Set("X-Api-Key", key)
+	}
 	resp, err := im.client.Do(req)
 	if err != nil {
 		return &models.Service{
