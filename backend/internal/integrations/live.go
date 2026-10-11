@@ -109,12 +109,42 @@ type qbitTorrent struct {
 	Category     string  `json:"category"`
 }
 
+// qbitLogin authenticates against the WebUI API and returns the SID cookie.
+func (im *IntegrationManager) qbitLogin(ctx context.Context, qbURL string) (string, error) {
+	user := im.config["QBITTORRENT_USERNAME"]
+	pass := im.config["QBITTORRENT_PASSWORD"]
+	if user == "" || pass == "" {
+		return "", nil
+	}
+	form := url.Values{"username": {user}, "password": {pass}}
+	req, _ := http.NewRequestWithContext(ctx, "POST", qbURL+"/api/v2/auth/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := im.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != 200 || strings.TrimSpace(string(body)) != "Ok." {
+		return "", fmt.Errorf("qbit login: %s %s", resp.Status, strings.TrimSpace(string(body)))
+	}
+	for _, c := range resp.Cookies() {
+		if c.Name == "SID" || strings.HasPrefix(c.Name, "QBT_SID") {
+			return c.Name + "=" + c.Value, nil
+		}
+	}
+	return "", nil
+}
+
 func (im *IntegrationManager) GetQbitTorrents(ctx context.Context) ([]map[string]interface{}, error) {
 	qbURL := im.config["QBITTORRENT_URL"]
 	if qbURL == "" {
 		return nil, fmt.Errorf("QBITTORRENT_URL not configured")
 	}
 	req, _ := http.NewRequestWithContext(ctx, "GET", qbURL+"/api/v2/torrents/info?limit=20", nil)
+	if sid, err := im.qbitLogin(ctx, qbURL); err == nil && sid != "" {
+		req.Header.Set("Cookie", sid)
+	}
 	resp, err := im.client.Do(req)
 	if err != nil {
 		return nil, err
