@@ -18,7 +18,7 @@ services:
       retries: 3
 
   app:
-    image: homepage:v1.3.6
+    image: homepage:v1.3.7
     container_name: homepage-app
     env_file:
       - /srv/Homepage/.env.vega

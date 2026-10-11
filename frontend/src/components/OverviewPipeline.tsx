@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Icon, ICONS } from '../lib/icons'
-import { STREAMS, TORRENTS, UPCOMING, ALERTS, type Stream, type TorrentState, ST } from '../lib/data'
+import { type Stream, type TorrentState, ST } from '../lib/data'
 import { useDashboardStore } from '../store/dashboard'
 
 const pct = (s: Stream): number => Math.round(s.pos * 100)
@@ -21,10 +21,10 @@ export default function OverviewPipeline(): JSX.Element {
   const { t } = useTranslation()
   const media = useDashboardStore((s) => s.media)
 
-  const streams: Stream[] = media.streams.length ? media.streams : STREAMS
-  const torrents = media.torrents.length ? media.torrents : TORRENTS
-  const upcoming = media.upcoming.length ? media.upcoming : UPCOMING
-  const alerts = media.alerts.length ? media.alerts : ALERTS
+  const streams: Stream[] = media.streams
+  const torrents = media.torrents
+  const upcoming = media.upcoming
+  const alerts = media.alerts
   const downloads = torrents.filter((x) => x.st === 'downloading').length
   const seeding = torrents.filter((x) => x.st === 'seeding').length
 

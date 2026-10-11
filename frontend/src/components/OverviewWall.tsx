@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Icon } from '../lib/icons'
 import { APPS, CATS } from '../lib/data'
+import { realUrl } from '../hooks/useBackend'
 import { useDashboardStore } from '../store/dashboard'
 import { statusFor, latencyFor } from '../hooks/useBackend'
 
@@ -24,7 +25,7 @@ export default function OverviewWall({ onOpen }: { onOpen: (id: string) => void 
               return (
                 <a
                   key={a.id}
-                  href={on ? a.url : undefined}
+                  href={on ? realUrl(a.id) ?? undefined : undefined}
                   className={`wall-tile${on ? '' : ' disconnected'}`}
                   onClick={(e) => {
                     if (!on) {
@@ -43,7 +44,7 @@ export default function OverviewWall({ onOpen }: { onOpen: (id: string) => void 
                   <span className="wall-tile-stat" style={{ color: st === 'online' ? 'var(--green)' : st === 'offline' ? 'var(--red)' : 'var(--muted)' }}>
                     {health}
                   </span>
-                  <span className="wall-tile-api">{a.url.replace(/^https?:\/\//, '')}</span>
+                  <span className="wall-tile-api">{(realUrl(a.id) ?? a.url).replace(/^https?:\/\//, '')}</span>
                   {lat !== null && (
                     <span className="svc-lat" style={{ textAlign: 'left' }}>{lat} ms</span>
                   )}

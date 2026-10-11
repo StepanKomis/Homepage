@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useDashboardStore } from '../store/dashboard'
-import { fetchStatus, fetchConfig, fetchMediaData, fetchLibraryStats, type BackendService, LAT } from '../lib/integrations'
+import { fetchStatus, fetchConfig, fetchMediaData, fetchLibraryStats, type BackendService } from '../lib/integrations'
 import type { ServiceStatus } from '../lib/data'
-import { APPS } from '../lib/data'
 
 const WS_URL = import.meta.env.VITE_WS_URL || '/api/ws'
 
@@ -10,21 +9,20 @@ const WS_URL = import.meta.env.VITE_WS_URL || '/api/ws'
    connectivity flag (on) and latency from the design data model. */
 export function statusFor(appId: string, statuses: Record<string, ServiceStatus>): ServiceStatus {
   const s = statuses[appId]
-  if (s) return s
-  const app = APPS.find((a) => a.id === appId)
-  return app && !app.on ? 'unknown' : 'online'
+  return s ?? 'unknown'
 }
 
 export const latencyFor = (appId: string): number | null => {
-  const app = APPS.find((a) => a.id === appId)
-  if (app && !app.on) return null
-  return LAT[appId] ?? null
+  const lats = useDashboardStore.getState().latencies
+  return lats[appId] ?? null
 }
 
 export function useBackend() {
   const pollMs = useDashboardStore((s) => s.pollMs)
   const live = useDashboardStore((s) => s.live)
   const setStatuses = useDashboardStore((s) => s.setStatuses)
+  const setLatencies = useDashboardStore((s) => s.setLatencies)
+  const setUrls = useDashboardStore((s) => s.setUrls)
   const updateStatus = useDashboardStore((s) => s.updateStatus)
   const setMedia = useDashboardStore((s) => s.setMedia)
   const setLibrary = useDashboardStore((s) => s.setLibrary)
@@ -42,8 +40,12 @@ export function useBackend() {
         if (cancelled) return
         if (st.status === 'fulfilled') {
           const map: Record<string, ServiceStatus> = {}
-          for (const s of st.value.services ?? []) map[s.id] = s.status
+          const lat: Record<string, number> = {}
+          const urls: Record<string, string> = {}
+          for (const s of st.value.services ?? []) { map[s.id] = s.status; if (s.latencyMs != null) lat[s.id] = s.latencyMs; if (s.url) urls[s.id] = s.url }
           setStatuses(map)
+          setLatencies(lat)
+          setUrls(urls)
         }
         if (media.status === 'fulfilled') setMedia(media.value)
         if (lib.status === 'fulfilled') setLibrary(lib.value)
@@ -90,8 +92,10 @@ export function useBackend() {
               updateStatus(msg.data.id, msg.data.status)
             } else if (msg.type === 'services' && Array.isArray(msg.data)) {
               const map: Record<string, ServiceStatus> = {}
-              for (const s of msg.data as BackendService[]) map[s.id] = s.status
+              const lat: Record<string, number> = {}
+              for (const s of msg.data as BackendService[]) { map[s.id] = s.status; if (s.latencyMs != null) lat[s.id] = s.latencyMs }
               setStatuses(map)
+              setLatencies(lat)
             }
           } catch {
             /* ignore malformed frames */
@@ -116,4 +120,9 @@ export function useBackend() {
       wsRef.current?.close()
     }
   }, [live, updateStatus, setStatuses])
+}
+
+/* Real service URL from backend status; null when backend has none. */
+export const realUrl = (appId: string): string | null => {
+  return useDashboardStore.getState().urls[appId] ?? null
 }

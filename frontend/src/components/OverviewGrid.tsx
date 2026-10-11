@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Icon, ICONS } from '../lib/icons'
-import { STREAMS, TORRENTS, UPCOMING, ALERTS, LIBRARY, ST, type Stream, type Torrent, type UpcomingItem, type AlertItem, type TorrentState } from '../lib/data'
+import { ST, type Stream, type Torrent, type UpcomingItem, type AlertItem, type TorrentState } from '../lib/data'
 import { useDashboardStore } from '../store/dashboard'
 import type { LibraryStat } from '../lib/integrations'
 
@@ -67,15 +67,14 @@ export default function OverviewGrid(): JSX.Element {
   const libraryLive = useDashboardStore((s) => s.library)
   const connected = useDashboardStore((s) => s.connected)
 
-  const streams: Stream[] = media.streams.length ? media.streams : STREAMS
-  const torrents: Torrent[] = media.torrents.length ? media.torrents : TORRENTS
-  const upcoming: UpcomingItem[] = media.upcoming.length ? media.upcoming : UPCOMING
-  const alerts: AlertItem[] = media.alerts.length ? media.alerts : ALERTS
-  const LIB: { value: string | number; label: string; src: string }[] =
-    libraryLive && libraryLive.length
-      ? libraryLive.map((l: LibraryStat) => ({ value: l.value, label: l.label, src: 'Live' }))
-      : LIBRARY
-  const jelly = connected.jellyfin !== false
+  const streams: Stream[] = media.streams
+  const torrents: Torrent[] = media.torrents
+  const upcoming: UpcomingItem[] = media.upcoming
+  const alerts: AlertItem[] = media.alerts
+  const LIB = libraryLive ?? []
+  const statuses = useDashboardStore((s) => s.statuses)
+  const servicesUp = Object.values(statuses).filter((x) => x === 'online').length
+  const servicesTotal = Object.keys(statuses).length || 0
 
   const streamsLive = streams.length
   const active = torrents.filter((x) => x.st === 'downloading').length
@@ -83,9 +82,9 @@ export default function OverviewGrid(): JSX.Element {
   return (
     <>
       <section className="kpi-grid">
-        <Kpi label={t('nav.apps')} value={jelly ? '20' : '19'} sub="18/20" icon="activity" tint="var(--greenTint)" delay={40} />
-        <Kpi label={t('overview.nowPlaying')} value={String(streamsLive)} sub={`${streamsLive} ${t('overview.streamsSuffix')}`} icon="film" tint="var(--blueTint)" spark={[40, 55, 45, 70, 60, 85]} delay={80} />
-        <Kpi label={t('overview.queue')} value={String(active)} sub={`${active} active · 96% up`} icon="download" tint="var(--greenTint)" spark={[90, 88, 92, 96, 94, 96]} delay={120} />
+        <Kpi label={t('nav.apps')} value={String(servicesUp)} sub={`${servicesUp}/${servicesTotal}`} icon="activity" tint="var(--greenTint)" delay={40} />
+        <Kpi label={t('overview.nowPlaying')} value={String(streamsLive)} sub={`${streamsLive} ${t('overview.streamsSuffix')}`} icon="film" tint="var(--blueTint)" delay={80} />
+        <Kpi label={t('overview.queue')} value={String(active)} sub={`${active} active`} icon="download" tint="var(--greenTint)" delay={120} />
         <Kpi label={t('overview.alerts')} value={String(alerts.length)} sub={`${alerts.filter((a) => a.prio >= 5).length} need attention`} icon="bell" tint="var(--amberTint)" delay={160} />
       </section>
 
@@ -191,7 +190,6 @@ export default function OverviewGrid(): JSX.Element {
                 <br />
                 <span className="lib-label">{l.label}</span>
                 <br />
-                <span className="lib-src">{l.src}</span>
               </div>
             ))}
           </div>

@@ -39,7 +39,9 @@ func (im *IntegrationManager) CheckUptimeKuma(ctx context.Context) (*models.Serv
 	}
 
 	req, _ := http.NewRequestWithContext(ctx, "GET", url+"/login", nil)
+	startK := time.Now()
 	resp, err := im.client.Do(req)
+	latK := time.Since(startK).Milliseconds()
 	if err != nil {
 		return &models.Service{
 			ID:        "uptime-kuma",
@@ -62,6 +64,7 @@ func (im *IntegrationManager) CheckUptimeKuma(ctx context.Context) (*models.Serv
 		Status:     status,
 		Icon:       "uptime-kuma",
 		URL:        stringPtr(url),
+		LatencyMs:  latK,
 		LastUpdate: time.Now(),
 	}, nil
 }
@@ -74,7 +77,9 @@ func (im *IntegrationManager) CheckJellyfin(ctx context.Context) (*models.Servic
 	}
 
 	req, _ := http.NewRequestWithContext(ctx, "GET", url+"/health", nil)
+	startJ := time.Now()
 	resp, err := im.client.Do(req)
+	latJ := time.Since(startJ).Milliseconds()
 	if err != nil {
 		return &models.Service{
 			ID:         "jellyfin",
@@ -97,6 +102,7 @@ func (im *IntegrationManager) CheckJellyfin(ctx context.Context) (*models.Servic
 		Status:     status,
 		Icon:       "jellyfin",
 		URL:        stringPtr(url),
+		LatencyMs:  latJ,
 		LastUpdate: time.Now(),
 	}, nil
 }
@@ -129,7 +135,9 @@ func (im *IntegrationManager) checkArrrService(ctx context.Context, id, name, ur
 	if key := im.config[strings.ToUpper(id)+"_API_KEY"]; key != "" {
 		req.Header.Set("X-Api-Key", key)
 	}
+	start := time.Now()
 	resp, err := im.client.Do(req)
+	lat := time.Since(start).Milliseconds()
 	if err != nil {
 		return &models.Service{
 			ID:         id,
@@ -156,6 +164,7 @@ func (im *IntegrationManager) checkArrrService(ctx context.Context, id, name, ur
 		Status:    status,
 		Icon:      id,
 		URL:       stringPtr(url),
+		LatencyMs: lat,
 		LastUpdate: time.Now(),
 		Metadata:  metadata,
 	}, nil
@@ -169,7 +178,9 @@ func (im *IntegrationManager) CheckAudiobookshelf(ctx context.Context) (*models.
 	}
 
 	req, _ := http.NewRequestWithContext(ctx, "GET", url+"/ping", nil)
+	startA := time.Now()
 	resp, err := im.client.Do(req)
+	latA := time.Since(startA).Milliseconds()
 	if err != nil {
 		return &models.Service{
 			ID:         "audiobookshelf",
@@ -192,6 +203,7 @@ func (im *IntegrationManager) CheckAudiobookshelf(ctx context.Context) (*models.
 		Status:     status,
 		Icon:       "audiobookshelf",
 		URL:        stringPtr(url),
+		LatencyMs:  latA,
 		LastUpdate: time.Now(),
 	}, nil
 }

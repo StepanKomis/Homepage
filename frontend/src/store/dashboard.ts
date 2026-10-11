@@ -22,6 +22,10 @@ interface DashboardStore {
   pollMs: number
   connected: Record<string, boolean>
   statuses: Record<string, ServiceStatus>
+  latencies: Record<string, number>
+  urls: Record<string, string>
+  setLatencies: (latencies: Record<string, number>) => void
+  setUrls: (urls: Record<string, string>) => void
   media: MediaData
   library: LibraryStat[] | null
   loading: boolean
@@ -56,6 +60,8 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
   pollMs: 30000,
   connected: {},
   statuses: {},
+  latencies: {},
+  urls: {},
   media: { streams: [], torrents: [], upcoming: [], alerts: [] },
   library: null,
   loading: true,
@@ -81,6 +87,8 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
     })),
   setConnected: (id, v) => set((s) => ({ connected: { ...s.connected, [id]: v } })),
   setStatuses: (statuses) => set({ statuses }),
+  setLatencies: (latencies: Record<string, number>) => set({ latencies }),
+  setUrls: (urls: Record<string, string>) => set({ urls }),
   updateStatus: (id, status) => set((s) => ({ statuses: { ...s.statuses, [id]: status } })),
   setMedia: (media) => set({ media }),
   setLibrary: (library) => set({ library }),

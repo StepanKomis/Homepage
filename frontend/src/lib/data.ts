@@ -1,4 +1,4 @@
-/* Data model and mock constants, ported verbatim from homepage-design/app-logic.js */
+/* Data model and app catalog. All runtime data comes from the backend API. */
 
 import { ICONS } from './icons'
 
@@ -70,11 +70,6 @@ export interface Stream {
   dur: number
 }
 
-export const STREAMS: Stream[] = [
-  { id: 1, user: 'alex', title: 'Severance', sub: 'S2 E7 · Chikhai Bardo', client: 'Android TV', mode: 'Direct play', pos: 0.42, dur: 54 },
-  { id: 2, user: 'mira', title: 'Dune: Part Two', sub: '2024', client: 'Firefox', mode: 'Transcode 4K → 1080p', pos: 0.71, dur: 166 },
-  { id: 3, user: 'dad', title: 'The Bear', sub: 'S3 E2 · Next', client: 'Roku', mode: 'Direct stream', pos: 0.15, dur: 34 },
-]
 
 export type TorrentState = 'downloading' | 'stalled' | 'seeding' | 'paused'
 
@@ -89,15 +84,6 @@ export interface Torrent {
   cat: string
 }
 
-export const TORRENTS: Torrent[] = [
-  { id: 1, name: 'Andor.S02E04.2160p.WEB.H265', size: 6.2, prog: 0.64, dl: 18.4, ul: 0.6, st: 'downloading', cat: 'sonarr' },
-  { id: 2, name: 'Nosferatu.2024.1080p.BluRay.x264', size: 12.8, prog: 0.31, dl: 14.1, ul: 0.3, st: 'downloading', cat: 'radarr' },
-  { id: 3, name: 'The.Last.of.Us.S02E05.1080p.WEB', size: 3.1, prog: 0.88, dl: 5.7, ul: 0.2, st: 'downloading', cat: 'sonarr' },
-  { id: 4, name: 'Conclave.2024.2160p.UHD.BluRay', size: 41.0, prog: 0.07, dl: 0, ul: 0, st: 'stalled', cat: 'radarr' },
-  { id: 5, name: 'ubuntu-24.04.2-desktop-amd64.iso', size: 6.0, prog: 1, dl: 0, ul: 2.1, st: 'seeding', cat: 'linux' },
-  { id: 6, name: 'Arcane.S02.1080p.NF.WEB-DL', size: 22.4, prog: 1, dl: 0, ul: 1.4, st: 'seeding', cat: 'sonarr' },
-  { id: 7, name: 'The.Brutalist.2024.1080p.WEB', size: 9.6, prog: 0.52, dl: 0, ul: 0, st: 'paused', cat: 'radarr' },
-]
 
 export interface UpcomingItem {
   day: string
@@ -107,14 +93,6 @@ export interface UpcomingItem {
   src: string
 }
 
-export const UPCOMING: UpcomingItem[] = [
-  { day: 'Today', time: '21:00', title: 'Andor', ep: 'S02E05 · Harvest', src: 'Sonarr' },
-  { day: 'Tomorrow', time: '03:00', title: 'Severance', ep: 'S02E08 · Sweet Vitriol', src: 'Sonarr' },
-  { day: 'Thu', time: '03:00', title: 'The Last of Us', ep: 'S02E06 · The Price', src: 'Sonarr' },
-  { day: 'Fri', time: 'Digital', title: 'Thunderbolts*', ep: '2025 · 1080p / 2160p', src: 'Radarr' },
-  { day: 'Sat', time: '03:00', title: 'Daredevil: Born Again', ep: 'S01E09 · Straight to Hell', src: 'Sonarr' },
-  { day: 'Tue', time: 'Digital', title: 'Sinners', ep: '2025 · 2160p', src: 'Radarr' },
-]
 
 export interface AlertItem {
   app: string
@@ -124,22 +102,7 @@ export interface AlertItem {
   prio: number
 }
 
-export const ALERTS: AlertItem[] = [
-  { app: 'Uptime Kuma', title: 'Prowlarr indexer down', msg: '1337x returned 503 for 15 min', t: '14:02', prio: 8 },
-  { app: 'Nginx Proxy Manager', title: 'Certificate expires in 6 days', msg: `ombi.${D}: renewal failed (DNS challenge)`, t: '12:00', prio: 6 },
-  { app: 'Jellyseerr', title: 'New request', msg: 'mira requested Severance · Season 1', t: '11:48', prio: 5 },
-  { app: 'Sonarr', title: 'Episode imported', msg: 'The Last of Us S02E04 → /media/tv', t: '09:41', prio: 3 },
-  { app: 'n8n', title: 'Workflow finished', msg: 'Nightly Immich backup → B2 · 3.2 GB', t: '03:12', prio: 2 },
-]
 
-export const LIBRARY = [
-  { value: '1,284', label: 'Movies', src: 'Jellyfin' },
-  { value: '212', label: 'Series', src: '8,931 episodes' },
-  { value: '642', label: 'Albums', src: 'Jellyfin music' },
-  { value: '214', label: 'Audiobooks', src: 'Audiobookshelf' },
-  { value: '48.2k', label: 'Photos', src: 'Immich' },
-  { value: '7.3 TB', label: 'Media on disk', src: 'Sonarr + Radarr' },
-]
 
 export const ST: Record<TorrentState, [string, string]> = {
   downloading: ['Downloading', '#1F5FD1'],
@@ -148,7 +111,6 @@ export const ST: Record<TorrentState, [string, string]> = {
   paused: ['Paused', 'var(--subtle)'],
 }
 
-export const LATENCIES: Record<string, number> = { jellyfin: 18, seerr: 22, immich: 31, abs: 14, navidrome: 9, sonarr: 12, radarr: 13, prowlarr: 640, qbit: 8, n8n: 26, portainer: 19, tailscale: 88, npm: 7, kuma: 11, grafana: 24, pihole: 4, nextcloud: 142, mealie: 17, dawarich: 35, gotify: 6 }
 
 export const BESPOKE: Record<string, string> = { jellyfin: 'jellyfin', seerr: 'seerr', sonarr: 'arr', radarr: 'arr', qbit: 'qbit', gotify: 'alerts' }
 export const pageOf = (id: string): string => BESPOKE[id] || 'app:' + id

@@ -2,7 +2,7 @@
    Real integrations (Jellyfin, qBittorrent, Sonarr/Radarr, Gotify) can replace
    the fetchers here without touching components. */
 import type { ServiceStatus } from './data'
-import { STREAMS, TORRENTS, UPCOMING, ALERTS, type Stream, type Torrent, type TorrentState, type UpcomingItem, type AlertItem } from './data'
+import { type Stream, type Torrent, type TorrentState, type UpcomingItem, type AlertItem } from './data'
 
 export const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
@@ -16,6 +16,7 @@ export interface BackendService {
   icon?: string
   url?: string
   lastUpdate?: number
+  latencyMs?: number
   metadata?: Record<string, unknown>
 }
 
@@ -152,10 +153,10 @@ export async function fetchMediaData(): Promise<MediaData> {
     getJSON<{ alerts: Row[] | null }>('/v1/alerts'),
   ])
   return {
-    streams: streams?.streams?.map(mapStream) ?? STREAMS,
-    torrents: torrents?.torrents?.map(mapTorrent) ?? TORRENTS,
-    upcoming: upcoming?.upcoming?.map(mapUpcoming) ?? UPCOMING,
-    alerts: alerts?.alerts?.map(mapAlert) ?? ALERTS,
+    streams: streams?.streams?.map(mapStream) ?? [],
+    torrents: torrents?.torrents?.map(mapTorrent) ?? [],
+    upcoming: upcoming?.upcoming?.map(mapUpcoming) ?? [],
+    alerts: alerts?.alerts?.map(mapAlert) ?? [],
   }
 }
 

@@ -18,6 +18,7 @@ type Service struct {
 	Status    ServiceStatus          `json:"status"`
 	Icon      string                 `json:"icon"`
 	URL       *string                `json:"url,omitempty"`
+	LatencyMs int64                  `json:"latencyMs,omitempty"`
 	LastUpdate time.Time             `json:"lastUpdate"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 }

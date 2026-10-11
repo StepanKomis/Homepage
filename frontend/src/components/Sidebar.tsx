@@ -30,7 +30,7 @@ export default function Sidebar() {
   const groupItems = (cat: string): AppDef[] => APPS.filter((a) => a.cat === cat)
   const countOf = (a: AppDef): string => {
     const st = statusFor(a.id, statuses)
-    if (st === 'online' && (connected[a.id] ?? a.on)) return t('services.status_online')
+    if (st === 'online') return t('services.status_online')
     if (st === 'offline') return t('services.status_offline')
     return t('services.status_unknown')
   }
@@ -76,7 +76,7 @@ export default function Sidebar() {
                     <span className="nav-label">{a.name}</span>
                   </span>
                   <span className="nav-count" style={{ color: dot }} title={countOf(a)}>
-                    {(connected[a.id] ?? a.on) ? '·' : '×'}
+                    {st === 'online' ? '·' : st === 'offline' ? '×' : '·'}
                   </span>
                 </a>
               )

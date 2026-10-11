@@ -12,7 +12,12 @@ export default function ServicesList({ onOpen }: { onOpen: (id: string) => void 
   const connected = useDashboardStore((s) => s.connected)
 
   const q = query.trim().toLowerCase()
-  const list = APPS.filter((a) => !q || a.name.toLowerCase().includes(q) || a.url.toLowerCase().includes(q))
+  const urls = useDashboardStore((s) => s.urls)
+  const list = APPS.filter((a) => {
+    if (!q) return true
+    const u = urls[a.id] ?? a.url
+    return a.name.toLowerCase().includes(q) || u.toLowerCase().includes(q)
+  })
 
   return (
     <section className="card" style={{ gap: 0 }}>
@@ -40,7 +45,7 @@ export default function ServicesList({ onOpen }: { onOpen: (id: string) => void 
           return (
             <a
               key={a.id}
-              href={on ? a.url : undefined}
+              href={on ? urls[a.id] ?? undefined : undefined}
               className="svc-row"
               onClick={(e) => {
                 if (!on) {
@@ -55,7 +60,7 @@ export default function ServicesList({ onOpen }: { onOpen: (id: string) => void 
               </span>
               <span className="svc-name-col">
                 <span className="svc-name">{a.name}</span>
-                <span className="svc-url">{a.url.replace(/^https?:\/\//, '')}</span>
+                <span className="svc-url">{(urls[a.id] ?? a.url).replace(/^https?:\/\//, '')}</span>
               </span>
               <span className="svc-health" style={{ color: healthColor }}>{health}</span>
               <span className="svc-lat">{lat !== null ? `${lat} ms` : ''}</span>
@@ -69,5 +74,5 @@ export default function ServicesList({ onOpen }: { onOpen: (id: string) => void 
 }
 
 function connectedCount(connected: Record<string, boolean>, statuses: Record<string, string>): number {
-  return APPS.filter((a) => (connected[a.id] ?? a.on) && statuses[a.id] !== 'offline').length
+  return APPS.filter((a) => (connected[a.id] ?? false) && statuses[a.id] !== 'offline').length
 }
