@@ -202,10 +202,12 @@ func (s *Server) handleAlerts(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	var msgs []map[string]interface{}
 	var err error
-	if s.gotifyDB != nil {
-		msgs, err = s.gotifyDB.Recent(ctx, 10)
-	} else {
-		msgs, err = s.intgr.GetGotifyMessages(ctx)
+	msgs, err = s.intgr.GetGotifyMessages(ctx)
+	if err != nil && s.gotifyDB != nil {
+		msgs, e2 := s.gotifyDB.Recent(ctx, 10)
+		if e2 == nil {
+			err = nil
+		}
 	}
 	s.writeJSON(w, map[string]interface{}{"alerts": msgs}, err)
 }
